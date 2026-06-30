@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agrícola Espino - R. Cosecha</title>
+    <style>
+        :root { --main: #1a2a6c; --sec: #b21f1f; --accent: #fdbb2d; --bg: #f8f9fa; --white: #ffffff; }
+        body { font-family: 'Segoe UI', sans-serif; background: linear-gradient(135deg, #e0eafc, #cfdef3); margin: 0; min-height: 100vh; padding: 10px; display: flex; flex-direction: column; }
+        .section { display: none; }
+        .active { display: block; }
+        .container { max-width: 500px; margin: 20px auto; background: var(--white); padding: 25px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); flex-grow: 1; }
+        input, select, button { width: 100%; padding: 15px; margin: 10px 0; border: 2px solid #eee; border-radius: 12px; box-sizing: border-box; font-size: 16px; transition: 0.3s; }
+        button { background: var(--main); color: white; border: none; cursor: pointer; font-weight: bold; text-transform: uppercase; }
+        footer { text-align: center; font-size: 12px; color: #555; margin-top: auto; padding: 10px; }
+        table { width: 100%; border-collapse: separate; border-spacing: 0 10px; margin-top: 15px; }
+        td { padding: 15px; background: #fff; border-bottom: 2px solid #f0f0f0; }
+        header { display: flex; gap: 10px; margin-bottom: 20px; }
+        header button { margin: 0; padding: 10px; font-size: 12px; }
+        h3 { color: var(--main); border-left: 5px solid var(--main); padding-left: 10px; }
+    </style>
+</head>
+<body>
+
+<div id="login" class="section active">
+    <div class="container" style="margin-top: 100px;">
+        <h2 style="text-align: center; color: var(--main);">Acceso al Sistema</h2>
+        <input type="text" id="user" placeholder="Usuario">
+        <input type="password" id="pass" placeholder="Clave">
+        <button onclick="verificar()">INGRESAR </button>
+    </div>
+</div>
+
+<div id="app" class="section">
+    <div class="container">
+        <header>
+            <button onclick="show('asis')">ASIS.</button>
+            <button onclick="show('avnc')">AVANCE</button>
+            <button onclick="show('dash')">DASH</button>
+        </header>
+
+        <div id="asis" class="section active">
+            <h3>Asistencia</h3>
+            <input type="text" id="nom" placeholder="Nombre">
+            <input type="text" id="apP" placeholder="Ap. Paterno">
+            <input type="text" id="apM" placeholder="Ap. Materno">
+            <button onclick="regAsis()">REGISTRAR PERSONAL</button>
+            <table id="tAsis"><tbody id="bAsis"></tbody></table>
+            <button onclick="pedirClave('reset')" style="background:var(--sec)">REINICIAR SISTEMA</button>
+        </div>
+
+        <div id="avnc" class="section">
+            <h3>Registro de Avance</h3>
+            <select id="selP" onchange="mostrarHistorial()"></select>
+            <input type="number" id="cant" placeholder="Kg">
+            <input type="number" id="javas" placeholder="Javas">
+            <button onclick="regAvance()">GUARDAR</button>
+            <button onclick="sendWA(true)" style="background:#25d366">RE.INDIVIDUAL</button>
+            <table id="tAv"><tbody id="bAv"></tbody></table>
+        </div>
+
+        <div id="dash" class="section">
+            <h3>Dashboard</h3>
+            <button onclick="sendWA(false)" style="background:#25d366">REPORTE GRUPAL</button>
+            <table id="tDash"><tbody id="bDash"></tbody></table>
+        </div>
+    </div>
+    <footer>Creado por Andy Espino Alvarez - 914450843</footer>
+</div>
+
+<script>
+    function verificar() {
+        if(document.getElementById('user').value === 'Andy Espino' && document.getElementById('pass').value === '12345678') {
+            document.getElementById('login').classList.remove('active');
+            document.getElementById('app').classList.add('active');
+            renderAll();
+        } else { alert('Acceso denegado'); }
+    }
+
+    function pedirClave(tipo, id) {
+        let clave = prompt("Ingrese clave 2512 para confirmar:");
+        if(clave === "2512") {
+            if(tipo === 'reset') { localStorage.clear(); location.reload(); }
+            else if(tipo === 'borrar') { borrarPersonal(id); }
+        } else { alert("Clave incorrecta"); }
+    }
+
+    function show(id) {
+        document.querySelectorAll('.container .section').forEach(s => s.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        if(id === 'avnc') cargarSelect();
+        if(id === 'dash') renderDash();
+    }
+
+    function regAsis() {
+        let n = `${document.getElementById('nom').value} ${document.getElementById('apP').value} ${document.getElementById('apM').value}`;
+        let d = JSON.parse(localStorage.getItem('asis') || '[]');
+        d.push({id: Date.now(), n: n, h: new Date().toLocaleTimeString()});
+        localStorage.setItem('asis', JSON.stringify(d)); renderAll();
+    }
+
+    function renderAll() {
+        let asis = JSON.parse(localStorage.getItem('asis') || '[]');
+        document.getElementById('bAsis').innerHTML = asis.map(r => `<tr><td>${r.n}</td><td><button onclick="pedirClave('borrar', ${r.id})" style="background:var(--sec); padding:5px; width:auto">X</button></td></tr>`).join('');
+    }
+
+    function borrarPersonal(id) {
+        let d = JSON.parse(localStorage.getItem('asis'));
+        localStorage.setItem('asis', JSON.stringify(d.filter(x => x.id !== id))); 
+        renderAll();
+    }
+
+    function regAvance() {
+        let p = document.getElementById('selP').value;
+        let d = JSON.parse(localStorage.getItem('avance') || '[]');
+        d.push({id: Date.now(), pid: p, c: document.getElementById('cant').value, j: document.getElementById('javas').value, h: new Date().toLocaleTimeString()});
+        localStorage.setItem('avance', JSON.stringify(d)); mostrarHistorial();
+    }
+
+    function cargarSelect() {
+        let d = JSON.parse(localStorage.getItem('asis') || '[]');
+        document.getElementById('selP').innerHTML = '<option value="">Personal...</option>' + d.map(p => `<option value="${p.n}">${p.n}</option>`).join('');
+    }
+
+    function mostrarHistorial() {
+        let n = document.getElementById('selP').value;
+        let av = JSON.parse(localStorage.getItem('avance') || '[]');
+        document.getElementById('bAv').innerHTML = av.filter(r => r.pid === n).map(r => `<tr><td>${r.h}</td><td>${r.c}kg</td><td>${r.j}javas</td><td><button onclick="borrarAvance(${r.id})" style="background:var(--sec); padding:5px; width:auto">X</button></td></tr>`).join('');
+    }
+
+    function borrarAvance(id) {
+        let d = JSON.parse(localStorage.getItem('avance') || '[]');
+        localStorage.setItem('avance', JSON.stringify(d.filter(x => x.id !== id))); mostrarHistorial();
+    }
+
+    function renderDash() {
+        let av = JSON.parse(localStorage.getItem('avance') || '[]');
+        let totals = {};
+        av.forEach(r => { if(r.pid) totals[r.pid] = (totals[r.pid] || 0) + parseFloat(r.c || 0); });
+        document.getElementById('bDash').innerHTML = Object.keys(totals).map(k => `<tr><td><b>${k}</b></td><td>${totals[k]} Kg</td></tr>`).join('');
+    }
+
+    function sendWA(individual) {
+        let asis = JSON.parse(localStorage.getItem('asis') || '[]');
+        let av = JSON.parse(localStorage.getItem('avance') || '[]');
+        let msg = "REPORTE AGRICOLA ESPINO\n";
+        if(individual) {
+            let p = document.getElementById('selP').value;
+            let ing = asis.find(a => a.n === p)?.h || "N/A";
+            msg += `Personal: ${p}\nIngreso: ${ing}\nAvance:\n` + av.filter(r => r.pid === p).map(r => `${r.h}: ${r.c}kg`).join('\n');
+        } else {
+            msg += "Resumen:\n" + Object.keys(asis.reduce((a, b) => { a[b.n] = 0; return a; }, {})).map(n => `${n}: ${av.filter(r => r.pid === n).reduce((s, r) => s + parseFloat(r.c || 0), 0)} Kg`).join('\n');
+        }
+        window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`);
+    }
+</script>
+</body>
+</html>
