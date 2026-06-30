@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Agrícola Espino - Premium</title>
+    <title>Sistema POS - Cosecha</title>
     <style>
         :root { --main: #1a2a6c; --sec: #b21f1f; --accent: #fdbb2d; --bg: #f8f9fa; --white: #ffffff; }
         body { font-family: 'Segoe UI', sans-serif; background: linear-gradient(135deg, #e0eafc, #cfdef3); margin: 0; min-height: 100vh; padding: 10px; display: flex; flex-direction: column; }
@@ -14,7 +14,7 @@
         button { background: var(--main); color: white; border: none; cursor: pointer; font-weight: bold; text-transform: uppercase; }
         footer { text-align: center; font-size: 12px; color: #555; margin-top: auto; padding: 10px; }
         table { width: 100%; border-collapse: separate; border-spacing: 0 10px; margin-top: 15px; }
-        td { padding: 15px; background: #fff; border-bottom: 2px solid #f0f0f0; }
+        td { padding: 10px; background: #fff; border-bottom: 2px solid #f0f0f0; font-size: 14px; }
         header { display: flex; gap: 5px; margin-bottom: 20px; flex-wrap: wrap; }
         header button { margin: 0; padding: 10px; font-size: 11px; flex: 1; }
         h3 { color: var(--main); border-left: 5px solid var(--main); padding-left: 10px; }
@@ -24,7 +24,7 @@
 
 <div id="login" class="section active">
     <div class="container" style="margin-top: 50px;">
-        <h2 style="text-align: center; color: var(--main);">Login Supervisor</h2>
+        <h2 style="text-align: center; color: var(--main);">Login🤯</h2>
         <input type="text" id="user" placeholder="Nombre Supervisor">
         <input type="password" id="pass" placeholder="Clave">
         <button onclick="verificar()">INGRESAR</button>
@@ -37,7 +37,6 @@
             <button onclick="show('asis')">ASIS.</button>
             <button onclick="show('avnc')">AVANCE</button>
             <button onclick="show('dash')">DASH</button>
-            <!-- El botón de crear cuenta se insertará aquí dinámicamente -->
         </header>
 
         <div id="asis" class="section active">
@@ -46,8 +45,9 @@
             <input type="text" id="apP" placeholder="Ap. Paterno">
             <input type="text" id="apM" placeholder="Ap. Materno">
             <button onclick="regAsis()">REGISTRAR PERSONAL</button>
+            <button onclick="enviarListaCompleta()" style="background:#25d366">ENVIAR LISTA COMPLETA</button>
+            <button onclick="enviarNombres()" style="background:#007bff">ENVIAR NOMBRES</button>
             <table id="tAsis"><tbody id="bAsis"></tbody></table>
-            <button onclick="pedirClave('reset')" style="background:var(--sec)">REINICIAR SISTEMA</button>
         </div>
 
         <div id="avnc" class="section">
@@ -72,6 +72,7 @@
             <input type="password" id="newP" placeholder="Clave">
             <button onclick="pedirClave('crear')">GUARDAR SUPERVISOR</button>
             <table id="tCuentas"><thead><tr><th>Supervisor</th><th>Acción</th></tr></thead><tbody id="bCuentas"></tbody></table>
+            <button onclick="pedirClave('reset')" style="background:var(--sec); margin-top:30px;">REINICIAR SISTEMA</button>
         </div>
     </div>
     <footer>Creado por Andy Espino Alvarez - 914450843</footer>
@@ -83,22 +84,16 @@
         let u = document.getElementById('user').value;
         let p = document.getElementById('pass').value;
         let cuentas = JSON.parse(localStorage.getItem('cuentas') || '[]');
-        
         if((u === 'Andy Espino' && p === '12345678') || cuentas.find(c => c.u === u && c.p === p)) {
             supActual = u;
             document.getElementById('login').classList.remove('active');
             document.getElementById('app').classList.add('active');
-            
-            // Lógica para mostrar botón Crear Cuenta solo si es Andy Espino
-            if(u === 'Andy Espino' && p === '12345678') {
-                let btn = document.createElement("button");
-                btn.innerHTML = "CREAR CUENTA";
+            if(u === 'Andy Espino' && p === '12345678' && !document.getElementById('btnCuenta')) {
+                let btn = document.createElement("button"); btn.id = "btnCuenta"; btn.innerHTML = "CREAR CUENTA";
                 btn.onclick = function() { show('cuenta'); };
                 document.getElementById('menuHeader').appendChild(btn);
             }
-            
-            renderAll();
-            renderCuentas();
+            renderAll(); renderCuentas();
         } else { alert('Acceso denegado'); }
     }
 
@@ -110,28 +105,49 @@
             else if(tipo === 'borrar') { borrarPersonal(id); }
             else if(tipo === 'borrarCuenta') { borrarCuenta(id); }
             else if(tipo === 'crear') { ejecutarCrear(); }
+            else if(tipo === 'salida') { registrarSalida(id); }
         } else { alert("Clave incorrecta"); }
+    }
+
+    function registrarSalida(id) {
+        let d = JSON.parse(localStorage.getItem('asis') || '[]');
+        let p = d.find(x => x.id === id);
+        if(p) { p.salida = new Date().toLocaleTimeString(); localStorage.setItem('asis', JSON.stringify(d)); renderAll(); }
+    }
+
+    function enviarListaCompleta() {
+        let asis = JSON.parse(localStorage.getItem('asis') || '[]');
+        let msg = `LISTA DE ASISTENCIA COMPLETA (CON HORARIOS)\nSupervisor: ${supActual}\n\n`;
+        msg += asis.map(a => `Personal: ${a.n}\nEntrada: ${a.ingreso}\nSalida: ${a.salida}\n---`).join('\n');
+        window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`);
+    }
+
+    function enviarNombres() {
+        let asis = JSON.parse(localStorage.getItem('asis') || '[]');
+        let msg = `LISTA DE PERSONAL\nSupervisor: ${supActual}\n\n`;
+        msg += asis.map(a => `- ${a.n}`).join('\n');
+        window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`);
     }
 
     function ejecutarCrear() {
         let u = document.getElementById('newU').value;
         let p = document.getElementById('newP').value;
-        if(!u || !p) return alert("Complete los campos");
+        if(!u || !p) return alert("Complete campos");
         let d = JSON.parse(localStorage.getItem('cuentas') || '[]');
         d.push({id: Date.now(), u: u, p: p});
-        localStorage.setItem('cuentas', JSON.stringify(d)); 
-        renderCuentas(); alert("Supervisor registrado");
+        localStorage.setItem('cuentas', JSON.stringify(d));
+        document.getElementById('newU').value = ""; document.getElementById('newP').value = "";
+        renderCuentas();
     }
 
     function renderCuentas() {
         let d = JSON.parse(localStorage.getItem('cuentas') || '[]');
-        document.getElementById('bCuentas').innerHTML = d.map(c => `<tr><td>${c.u}</td><td><button onclick="pedirClave('borrarCuenta', ${c.id})" style="background:var(--sec); padding:5px; width:auto">X</button></td></tr>`).join('');
+        document.getElementById('bCuentas').innerHTML = d.map(c => `<tr><td>${c.u}</td><td><button onclick="pedirClave('borrarCuenta', ${c.id})" style="background:var(--sec); padding:5px">X</button></td></tr>`).join('');
     }
 
     function borrarCuenta(id) {
         let d = JSON.parse(localStorage.getItem('cuentas'));
-        localStorage.setItem('cuentas', JSON.stringify(d.filter(x => x.id !== id))); 
-        renderCuentas();
+        localStorage.setItem('cuentas', JSON.stringify(d.filter(x => x.id !== id))); renderCuentas();
     }
 
     function show(id) {
@@ -141,24 +157,32 @@
         if(id === 'dash') renderDash();
     }
     function regAsis() {
-        let n = `${document.getElementById('nom').value} ${document.getElementById('apP').value} ${document.getElementById('apM').value}`;
+        let nom = document.getElementById('nom'), apP = document.getElementById('apP'), apM = document.getElementById('apM');
+        let n = `${nom.value} ${apP.value} ${apM.value}`;
+        if(!nom.value) return;
         let d = JSON.parse(localStorage.getItem('asis') || '[]');
-        d.push({id: Date.now(), n: n, h: new Date().toLocaleTimeString()});
-        localStorage.setItem('asis', JSON.stringify(d)); renderAll();
+        d.push({id: Date.now(), n: n, ingreso: new Date().toLocaleTimeString(), salida: "---"});
+        localStorage.setItem('asis', JSON.stringify(d));
+        nom.value = ""; apP.value = ""; apM.value = "";
+        renderAll();
     }
     function renderAll() {
         let asis = JSON.parse(localStorage.getItem('asis') || '[]');
-        document.getElementById('bAsis').innerHTML = asis.map(r => `<tr><td>${r.n}</td><td><button onclick="pedirClave('borrar', ${r.id})" style="background:var(--sec); padding:5px; width:auto">X</button></td></tr>`).join('');
+        document.getElementById('bAsis').innerHTML = asis.map(r => `<tr><td>${r.n}<br><small>Ent: ${r.ingreso} | Sal: ${r.salida}</small></td><td><button onclick="pedirClave('salida', ${r.id})" style="background:var(--accent); padding:5px; font-size:10px">SALIDA</button><button onclick="pedirClave('borrar', ${r.id})" style="background:var(--sec); padding:5px">X</button></td></tr>`).join('');
     }
     function borrarPersonal(id) {
         let d = JSON.parse(localStorage.getItem('asis'));
         localStorage.setItem('asis', JSON.stringify(d.filter(x => x.id !== id))); renderAll();
     }
     function regAvance() {
+        let cant = document.getElementById('cant'), javas = document.getElementById('javas');
         let p = document.getElementById('selP').value;
+        if(!p || !cant.value) return;
         let d = JSON.parse(localStorage.getItem('avance') || '[]');
-        d.push({id: Date.now(), pid: p, c: document.getElementById('cant').value, j: document.getElementById('javas').value, h: new Date().toLocaleTimeString()});
-        localStorage.setItem('avance', JSON.stringify(d)); mostrarHistorial();
+        d.push({id: Date.now(), pid: p, c: cant.value, j: javas.value, h: new Date().toLocaleTimeString()});
+        localStorage.setItem('avance', JSON.stringify(d));
+        cant.value = ""; javas.value = "";
+        mostrarHistorial();
     }
     function cargarSelect() {
         let d = JSON.parse(localStorage.getItem('asis') || '[]');
@@ -167,7 +191,7 @@
     function mostrarHistorial() {
         let n = document.getElementById('selP').value;
         let av = JSON.parse(localStorage.getItem('avance') || '[]');
-        document.getElementById('bAv').innerHTML = av.filter(r => r.pid === n).map(r => `<tr><td>${r.h}</td><td>${r.c}kg</td><td>${r.j}javas</td><td><button onclick="borrarAvance(${r.id})" style="background:var(--sec); padding:5px; width:auto">X</button></td></tr>`).join('');
+        document.getElementById('bAv').innerHTML = av.filter(r => r.pid === n).map(r => `<tr><td>${r.h}</td><td>${r.c}kg</td><td><button onclick="borrarAvance(${r.id})" style="background:var(--sec); padding:5px">X</button></td></tr>`).join('');
     }
     function borrarAvance(id) {
         let d = JSON.parse(localStorage.getItem('avance') || '[]');
@@ -182,14 +206,14 @@
     function sendWA(ind) {
         let asis = JSON.parse(localStorage.getItem('asis') || '[]');
         let av = JSON.parse(localStorage.getItem('avance') || '[]');
-        let msg = `REPORTE - SUPERVISOR: ${supActual}\n---------------------------\n`;
+        let msg = `REPORTE - SUP: ${supActual}\n---------------------------\n`;
         if(ind) {
             let p = document.getElementById('selP').value;
-            let ing = asis.find(a => a.n === p)?.h || "N/A";
-            msg += `Personal: ${p}\nIngreso: ${ing}\nAvances:\n` + av.filter(r => r.pid === p).map(r => `${r.h}: ${r.c}kg`).join('\n');
+            let ing = asis.find(a => a.n === p)?.ingreso || "N/A";
+            msg += `Personal: ${p}\nEntrada: ${ing}\nAvances:\n` + av.filter(r => r.pid === p).map(r => `${r.h}: ${r.c}kg`).join('\n');
         } else {
-            msg += "Personal | Ingreso | Total Kg\n---------------------------\n";
-            msg += asis.map(a => `${a.n} | ${a.h} | ${av.filter(r => r.pid === a.n).reduce((s, r) => s + parseFloat(r.c || 0), 0)} Kg`).join('\n');
+            msg += "Personal | Entrada | Salida | Total Kg\n---------------------------\n";
+            msg += asis.map(a => `${a.n} | ${a.ingreso} | ${a.salida} | ${av.filter(r => r.pid === a.n).reduce((s, r) => s + parseFloat(r.c || 0), 0)}kg`).join('\n');
         }
         window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`);
     }
