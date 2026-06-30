@@ -88,7 +88,7 @@
             supActual = u;
             document.getElementById('login').classList.remove('active');
             document.getElementById('app').classList.add('active');
-            if(u === 'Andy Espino' && p === '12345678' && !document.getElementById('btnCuenta')) {
+            if(u === 'Admin' && p === '2512' && !document.getElementById('btnCuenta')) {
                 let btn = document.createElement("button"); btn.id = "btnCuenta"; btn.innerHTML = "CREAR CUENTA";
                 btn.onclick = function() { show('cuenta'); };
                 document.getElementById('menuHeader').appendChild(btn);
