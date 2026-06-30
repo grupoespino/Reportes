@@ -84,7 +84,7 @@
         let u = document.getElementById('user').value;
         let p = document.getElementById('pass').value;
         let cuentas = JSON.parse(localStorage.getItem('cuentas') || '[]');
-        if((u === 'Andy Espino' && p === '12345678') || cuentas.find(c => c.u === u && c.p === p)) {
+        if((u === 'Admin' && p === '2512') || cuentas.find(c => c.u === u && c.p === p)) {
             supActual = u;
             document.getElementById('login').classList.remove('active');
             document.getElementById('app').classList.add('active');
