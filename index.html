@@ -3,229 +3,224 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reporte Asistencia - Premium</title>
+    <title>Control de Plagas</title>
     <style>
-        :root { --main: #1a2a6c; --sec: #b21f1f; --accent: #fdbb2d; --bg: #f8f9fa; --white: #ffffff; }
-        body { font-family: 'Segoe UI', sans-serif; background: linear-gradient(135deg, #e0eafc, #cfdef3); margin: 0; min-height: 100vh; padding: 10px; display: flex; flex-direction: column; }
-        .section { display: none; }
-        .active { display: block; }
-        .container { max-width: 500px; margin: 20px auto; background: var(--white); padding: 25px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); flex-grow: 1; }
-        input, select, button { width: 100%; padding: 15px; margin: 10px 0; border: 2px solid #eee; border-radius: 12px; box-sizing: border-box; font-size: 16px; transition: 0.3s; }
-        button { background: var(--main); color: white; border: none; cursor: pointer; font-weight: bold; text-transform: uppercase; }
-        footer { text-align: center; font-size: 12px; color: #555; margin-top: auto; padding: 10px; }
-        table { width: 100%; border-collapse: separate; border-spacing: 0 10px; margin-top: 15px; }
-        td { padding: 10px; background: #fff; border-bottom: 2px solid #f0f0f0; font-size: 14px; }
-        header { display: flex; gap: 5px; margin-bottom: 20px; flex-wrap: wrap; }
-        header button { margin: 0; padding: 10px; font-size: 11px; flex: 1; }
-        h3 { color: var(--main); border-left: 5px solid var(--main); padding-left: 10px; }
-        .fecha-hoy { font-weight: bold; color: var(--main); margin-bottom: 10px; display: block; }
+        body { font-family: sans-serif; background: #f4f7f6; margin: 0; padding: 10px; }
+        nav { background: #2c3e50; padding: 10px; display: flex; gap: 15px; border-radius: 5px; margin-bottom: 10px; }
+        nav a { color: white; text-decoration: none; font-weight: bold; cursor: pointer; }
+        .card { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 15px; }
+        .page { display: none; } .active { display: block; }
+        input, select { width: 100%; padding: 10px; margin: 5px 0; border: 1px solid #ccc; box-sizing: border-box; }
+        button { width: 100%; padding: 12px; border: none; border-radius: 4px; color: white; font-weight: bold; cursor: pointer; margin-top: 5px; }
+        .btn-reg { background: #27ae60; } .btn-sig { background: #3498db; }
+        .btn-sm { padding: 2px 5px; font-size: 10px; width: auto; margin: 0 2px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }
+        th, td { border: 1px solid #ddd; padding: 6px; text-align: left; }
     </style>
 </head>
 <body>
 
-<div id="login" class="section active">
-    <div class="container" style="margin-top: 50px;">
-        <h2 style="text-align: center; color: var(--main);">Login Supervisor</h2>
-        <input type="text" id="user" placeholder="Nombre Supervisor">
-        <input type="password" id="pass" placeholder="Clave">
-        <button onclick="verificar()">INGRESAR</button>
+<nav>
+    <a onclick="showPage('registro')">Registro</a>
+    <a onclick="showPage('evaluacion')">Evaluación</a>
+    <a onclick="showPage('dashboard')">Dashboard</a>
+</nav>
+
+<div id="registro" class="page active">
+    <div class="card">
+        <h3>Registrar Plaga</h3>
+        <input type="text" id="nombrePlaga" placeholder="Nombre">
+        <input type="text" id="nombreCientifico" placeholder="Científico">
+        <button class="btn-reg" onclick="guardarPlaga()">Guardar</button>
+        <h3>Lista de Plagas</h3>
+        <table id="tablaPlagas"><thead><tr><th>Nombre</th><th>Científico</th><th>Acciones</th></tr></thead><tbody></tbody></table>
+        <button class="btn-sig" style="background:#25d366; margin-top:10px;" onclick="enviarListaPlagas()">Enviar Lista a WhatsApp</button>
     </div>
 </div>
 
-<div id="app" class="section">
-    <div class="container">
-        <header id="menuHeader">
-            <button onclick="show('asis')">ASIS.</button>
-            <button onclick="show('avnc')">AVANCE</button>
-            <button onclick="show('dash')">DASH</button>
-        </header>
-
-        <div id="asis" class="section active">
-            <h3>Asistencia</h3>
-            <span class="fecha-hoy" id="fechaDisplay"></span>
-            <input type="text" id="nom" placeholder="Nombre">
-            <input type="text" id="apP" placeholder="Ap. Paterno">
-            <input type="text" id="apM" placeholder="Ap. Materno">
-            <input type="number" id="dni" placeholder="DNI">
-            <button onclick="regAsis()">REGISTRAR PERSONAL</button>
-            <button onclick="enviarListaCompleta()" style="background:#25d366">ENVIAR LISTA COMPLETA</button>
-            <button onclick="enviarNombres()" style="background:#007bff">ENVIAR NOMBRES</button>
-            <table id="tAsis"><tbody id="bAsis"></tbody></table>
-        </div>
-
-        <div id="avnc" class="section">
-            <h3>Registro de Avance</h3>
-            <select id="selP" onchange="mostrarHistorial()"></select>
-            <input type="number" id="cant" placeholder="Kg">
-            <input type="number" id="javas" placeholder="Javas">
-            <button onclick="regAvance()">GUARDAR</button>
-            <button onclick="sendWA(true)" style="background:#25d366">WA INDIVIDUAL</button>
-            <table id="tAv"><tbody id="bAv"></tbody></table>
-        </div>
-
-        <div id="dash" class="section">
-            <h3>Dashboard</h3>
-            <button onclick="sendWA(false)" style="background:#25d366">REPORTE GRUPAL</button>
-            <table id="tDash"><tbody id="bDash"></tbody></table>
-        </div>
-
-        <div id="cuenta" class="section">
-            <h3>Nueva Cuenta Supervisor</h3>
-            <input type="text" id="newU" placeholder="Nombre Supervisor">
-            <input type="password" id="newP" placeholder="Clave">
-            <button onclick="pedirClave('crear')">GUARDAR SUPERVISOR</button>
-            <table id="tCuentas"><thead><tr><th>Supervisor</th><th>Acción</th></tr></thead><tbody id="bCuentas"></tbody></table>
-            <button onclick="pedirClave('reset')" style="background:var(--sec); margin-top:30px;">REINICIAR SISTEMA</button>
-        </div>
+<div id="evaluacion" class="page">
+    <div class="card" id="formEvaluacion">
+        <h3>Evaluación</h3>
+        <input type="text" id="lote" placeholder="Lote (ej: Lote 1)">
+        <input type="text" id="cultivo" placeholder="Cultivo (ej: Arándano)">
+        <input type="number" id="numMuestras" placeholder="Total de muestras">
+        <button class="btn-reg" onclick="iniciarEvaluacion()">Comenzar</button>
     </div>
-    <footer>Creado por Andy Espino Alvarez - 914450843</footer>
+    <div id="panelEvaluacion" class="card" style="display:none;">
+        <h3 id="infoEvaluacion"></h3>
+        <h3 id="tituloMuestra">Muestra 1</h3>
+        <select id="selPlaga"></select>
+        <select id="selParte"><option>Hoja</option><option>Flor</option><option>Tallo</option><option>Raíz</option></select>
+        <input type="number" id="cantidadPlaga" placeholder="Cantidad">
+        <button class="btn-reg" onclick="registrarDato()">Registrar en esta muestra</button>
+        <div id="listaTemporal"></div>
+        <button class="btn-sig" onclick="siguienteMuestra()">Siguiente Muestra</button>
+        <button style="background:#e74c3c; margin-top:10px;" onclick="reiniciarEvaluacion()">Reiniciar Evaluación</button>
+    </div>
+</div>
+
+<div id="dashboard" class="page">
+    <div class="card">
+        <h3>Reporte General</h3>
+        <table id="tablaGeneral"><thead><tr><th>M</th><th>Plaga</th><th>Parte</th><th>Cant</th></tr></thead><tbody></tbody></table>
+        <h3>Resumen por Plaga</h3>
+        <table id="tablaResumen"><thead><tr><th>Plaga</th><th>Total</th><th>Prom</th><th>%</th></tr></thead><tbody></tbody></table>
+        <button class="btn-reg" style="background:#25d366" onclick="enviarWhatsAppCompleto()">Enviar Reporte Completo</button>
+        <button class="btn-sig" style="margin-top:10px;" onclick="enviarWhatsAppResumen()">Enviar Solo Resumen</button>
+        <button style="background:#e74c3c; margin-top:10px;" onclick="reiniciarTodo()">Reiniciar Todo</button>
+    </div>
 </div>
 
 <script>
-    let supActual = "";
-    const fechaHoy = new Date().toLocaleDateString();
-    document.getElementById('fechaDisplay').innerText = "Fecha: " + fechaHoy;
+    let plagas = JSON.parse(localStorage.getItem('plagas')) || [];
+    let evaluaciones = JSON.parse(localStorage.getItem('evaluaciones')) || [];
+    let muestraActual = 1;
+    let totalMuestras = parseInt(localStorage.getItem('totalMuestras')) || 0;
 
-    function verificar() {
-        let u = document.getElementById('user').value;
-        let p = document.getElementById('pass').value;
-        let cuentas = JSON.parse(localStorage.getItem('cuentas') || '[]');
-        if((u === 'Andy Espino' && p === '12345678') || cuentas.find(c => c.u === u && c.p === p)) {
-            supActual = u;
-            document.getElementById('login').classList.remove('active');
-            document.getElementById('app').classList.add('active');
-            if(u === 'Andy Espino' && p === '12345678' && !document.getElementById('btnCuenta')) {
-                let btn = document.createElement("button"); btn.id = "btnCuenta"; btn.innerHTML = "CREAR CUENTA";
-                btn.onclick = function() { show('cuenta'); };
-                document.getElementById('menuHeader').appendChild(btn);
-            }
-            renderAll(); renderCuentas();
-        } else { alert('Acceso denegado'); }
-    }
-
-    function pedirClave(tipo, id) {
-        let req = (tipo === 'crear') ? "25122512" : "2512";
-        let clave = prompt("Ingrese clave de seguridad:");
-        if(clave === req) {
-            if(tipo === 'reset') { localStorage.clear(); location.reload(); }
-            else if(tipo === 'borrar') { borrarPersonal(id); }
-            else if(tipo === 'borrarCuenta') { borrarCuenta(id); }
-            else if(tipo === 'crear') { ejecutarCrear(); }
-            else if(tipo === 'salida') { registrarSalida(id); }
-        } else { alert("Clave incorrecta"); }
-    }
-
-    function registrarSalida(id) {
-        let d = JSON.parse(localStorage.getItem('asis') || '[]');
-        let p = d.find(x => x.id === id);
-        if(p) { p.salida = new Date().toLocaleTimeString(); localStorage.setItem('asis', JSON.stringify(d)); renderAll(); }
-    }
-
-    function enviarListaCompleta() {
-        let asis = JSON.parse(localStorage.getItem('asis') || '[]');
-        let msg = `LISTA DE ASISTENCIA - FECHA: ${fechaHoy}\nSupervisor: ${supActual}\n\n`;
-        msg += asis.map(a => `Personal: ${a.n}\nDNI: ${a.dni}\nEntrada: ${a.ingreso}\nSalida: ${a.salida}\n---`).join('\n');
-        window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`);
-    }
-
-    function enviarNombres() {
-        let asis = JSON.parse(localStorage.getItem('asis') || '[]');
-        let msg = `LISTA DE PERSONAL - FECHA: ${fechaHoy}\nSupervisor: ${supActual}\n\n`;
-        msg += asis.map(a => `- ${a.n} (DNI: ${a.dni})`).join('\n');
-        window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`);
-    }
-
-    function ejecutarCrear() {
-        let u = document.getElementById('newU').value;
-        let p = document.getElementById('newP').value;
-        if(!u || !p) return alert("Complete campos");
-        let d = JSON.parse(localStorage.getItem('cuentas') || '[]');
-        d.push({id: Date.now(), u: u, p: p});
-        localStorage.setItem('cuentas', JSON.stringify(d));
-        document.getElementById('newU').value = ""; document.getElementById('newP').value = "";
-        renderCuentas();
-    }
-
-    function renderCuentas() {
-        let d = JSON.parse(localStorage.getItem('cuentas') || '[]');
-        document.getElementById('bCuentas').innerHTML = d.map(c => `<tr><td>${c.u}</td><td><button onclick="pedirClave('borrarCuenta', ${c.id})" style="background:var(--sec); padding:5px">X</button></td></tr>`).join('');
-    }
-
-    function borrarCuenta(id) {
-        let d = JSON.parse(localStorage.getItem('cuentas'));
-        localStorage.setItem('cuentas', JSON.stringify(d.filter(x => x.id !== id))); renderCuentas();
-    }
-
-    function show(id) {
-        document.querySelectorAll('.container .section').forEach(s => s.classList.remove('active'));
+    function showPage(id) {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
         document.getElementById(id).classList.add('active');
-        if(id === 'avnc') cargarSelect();
-        if(id === 'dash') renderDash();
+        renderDashboard();
+        renderPlagas();
     }
-    function regAsis() {
-        let nom = document.getElementById('nom'), apP = document.getElementById('apP'), apM = document.getElementById('apM'), dni = document.getElementById('dni');
-        let n = `${nom.value} ${apP.value} ${apM.value}`;
-        if(!nom.value || !dni.value) return alert("Complete nombre y DNI");
-        let d = JSON.parse(localStorage.getItem('asis') || '[]');
-        d.push({id: Date.now(), n: n, dni: dni.value, ingreso: new Date().toLocaleTimeString(), salida: "---"});
-        localStorage.setItem('asis', JSON.stringify(d));
-        nom.value = ""; apP.value = ""; apM.value = ""; dni.value = "";
-        renderAll();
+
+    function guardarPlaga() {
+        const nom = document.getElementById('nombrePlaga');
+        const cie = document.getElementById('nombreCientifico');
+        if(nom.value === "") return;
+        plagas.push({nombre: nom.value, cie: cie.value});
+        localStorage.setItem('plagas', JSON.stringify(plagas));
+        nom.value = ""; cie.value = "";
+        actualizarSelects();
+        renderPlagas();
     }
-    function renderAll() {
-        let asis = JSON.parse(localStorage.getItem('asis') || '[]');
-        document.getElementById('bAsis').innerHTML = asis.map(r => `<tr><td>${r.n}<br><small>DNI: ${r.dni} | Ent: ${r.ingreso} | Sal: ${r.salida}</small></td><td><button onclick="pedirClave('salida', ${r.id})" style="background:var(--accent); padding:5px; font-size:10px">SALIDA</button><button onclick="pedirClave('borrar', ${r.id})" style="background:var(--sec); padding:5px">X</button></td></tr>`).join('');
+
+    function renderPlagas() {
+        document.querySelector('#tablaPlagas tbody').innerHTML = plagas.map((p, index) => 
+            `<tr><td>${p.nombre}</td><td>${p.cie}</td><td>
+            <button class="btn-sm btn-sig" onclick="editarPlagaConClave(${index})">Ed</button>
+            <button class="btn-sm" style="background:red" onclick="eliminarPlagaConClave(${index})">X</button>
+            </td></tr>`).join('');
     }
-    function borrarPersonal(id) {
-        let d = JSON.parse(localStorage.getItem('asis'));
-        localStorage.setItem('asis', JSON.stringify(d.filter(x => x.id !== id))); renderAll();
+
+    function eliminarPlagaConClave(i) {
+        const clave = prompt("Introduce la clave para eliminar:");
+        if (clave === "2512") { plagas.splice(i, 1); localStorage.setItem('plagas', JSON.stringify(plagas)); renderPlagas(); actualizarSelects(); }
     }
-    function regAvance() {
-        let cant = document.getElementById('cant'), javas = document.getElementById('javas');
-        let p = document.getElementById('selP').value;
-        if(!p || !cant.value) return;
-        let d = JSON.parse(localStorage.getItem('avance') || '[]');
-        d.push({id: Date.now(), pid: p, c: cant.value, j: javas.value, h: new Date().toLocaleTimeString()});
-        localStorage.setItem('avance', JSON.stringify(d));
-        cant.value = ""; javas.value = "";
-        mostrarHistorial();
-    }
-    function cargarSelect() {
-        let d = JSON.parse(localStorage.getItem('asis') || '[]');
-        document.getElementById('selP').innerHTML = '<option value="">Personal...</option>' + d.map(p => `<option value="${p.n}">${p.n}</option>`).join('');
-    }
-    function mostrarHistorial() {
-        let n = document.getElementById('selP').value;
-        let av = JSON.parse(localStorage.getItem('avance') || '[]');
-        document.getElementById('bAv').innerHTML = av.filter(r => r.pid === n).map(r => `<tr><td>${r.h}</td><td>${r.c}kg</td><td><button onclick="borrarAvance(${r.id})" style="background:var(--sec); padding:5px">X</button></td></tr>`).join('');
-    }
-    function borrarAvance(id) {
-        let d = JSON.parse(localStorage.getItem('avance') || '[]');
-        localStorage.setItem('avance', JSON.stringify(d.filter(x => x.id !== id))); mostrarHistorial();
-    }
-    function renderDash() {
-        let av = JSON.parse(localStorage.getItem('avance') || '[]');
-        let totals = {};
-        av.forEach(r => { if(r.pid) totals[r.pid] = (totals[r.pid] || 0) + parseFloat(r.c || 0); });
-        
-        let sorted = Object.keys(totals).map(k => ({n: k, c: totals[k]})).sort((a, b) => b.c - a.c);
-        
-        document.getElementById('bDash').innerHTML = sorted.map(item => `<tr><td><b>${item.n}</b></td><td>${item.c} Kg</td></tr>`).join('');
-    }
-    function sendWA(ind) {
-        let asis = JSON.parse(localStorage.getItem('asis') || '[]');
-        let av = JSON.parse(localStorage.getItem('avance') || '[]');
-        let msg = `REPORTE - FECHA: ${fechaHoy}\nSUP: ${supActual}\n---------------------------\n`;
-        if(ind) {
-            let p = document.getElementById('selP').value;
-            let ing = asis.find(a => a.n === p)?.ingreso || "N/A";
-            msg += `Personal: ${p}\nEntrada: ${ing}\nAvances:\n` + av.filter(r => r.pid === p).map(r => `${r.h}: ${r.c}kg`).join('\n');
-        } else {
-            msg += "Personal | DNI | Entrada | Salida | Total Kg\n---------------------------\n";
-            msg += asis.map(a => `${a.n} | ${a.dni} | ${a.ingreso} | ${a.salida} | ${av.filter(r => r.pid === a.n).reduce((s, r) => s + parseFloat(r.c || 0), 0)}kg`).join('\n');
+    
+    function editarPlagaConClave(i) {
+        const clave = prompt("Introduce la clave para editar:");
+        if (clave === "2512") {
+            document.getElementById('nombrePlaga').value = plagas[i].nombre;
+            document.getElementById('nombreCientifico').value = plagas[i].cie;
+            plagas.splice(i, 1); localStorage.setItem('plagas', JSON.stringify(plagas)); renderPlagas();
         }
-        window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`);
     }
+
+    function enviarListaPlagas() {
+        let msg = "Lista de Plagas:%0A" + plagas.map(p => `${p.nombre} (${p.cie})`).join('%0A');
+        window.open(`https://wa.me/?text=${msg}`, '_blank');
+    }
+
+    function iniciarEvaluacion() {
+        totalMuestras = parseInt(document.getElementById('numMuestras').value);
+        const lote = document.getElementById('lote').value;
+        const cultivo = document.getElementById('cultivo').value;
+        localStorage.setItem('totalMuestras', totalMuestras);
+        localStorage.setItem('infoLote', lote + " - " + cultivo);
+        document.getElementById('infoEvaluacion').innerText = lote + " - " + cultivo;
+        document.getElementById('formEvaluacion').style.display = 'none';
+        document.getElementById('panelEvaluacion').style.display = 'block';
+        actualizarSelects();
+    }
+
+    function reiniciarEvaluacion() {
+        if(confirm("¿Reiniciar evaluación actual?")) {
+            evaluaciones = [];
+            localStorage.setItem('evaluaciones', JSON.stringify(evaluaciones));
+            document.getElementById('formEvaluacion').style.display = 'block';
+            document.getElementById('panelEvaluacion').style.display = 'none';
+            muestraActual = 1;
+        }
+    }
+
+    function registrarDato() {
+        const data = {
+            m: muestraActual,
+            p: document.getElementById('selPlaga').value,
+            pr: document.getElementById('selParte').value,
+            c: Number(document.getElementById('cantidadPlaga').value) || 0
+        };
+        evaluaciones.push(data);
+        localStorage.setItem('evaluaciones', JSON.stringify(evaluaciones));
+        document.getElementById('listaTemporal').innerHTML += `<p style="font-size:12px; color:green;">✓ ${data.p} (${data.c})</p>`;
+    }
+
+    function siguienteMuestra() {
+        if(muestraActual < totalMuestras) {
+            muestraActual++;
+            document.getElementById('tituloMuestra').innerText = "Muestra " + muestraActual;
+            document.getElementById('listaTemporal').innerHTML = "";
+        } else { alert("Evaluación finalizada"); }
+    }
+
+    function actualizarSelects() {
+        document.getElementById('selPlaga').innerHTML = plagas.map(p => `<option>${p.nombre}</option>`).join('');
+    }
+
+    function renderDashboard() {
+        document.querySelector('#tablaGeneral tbody').innerHTML = evaluaciones.map(e => 
+            `<tr><td>${e.m}</td><td>${e.p}</td><td>${e.pr}</td><td>${e.c}</td></tr>`).join('');
+        
+        const resumen = {};
+        let totalGeneral = 0;
+        evaluaciones.forEach(e => {
+            const cant = Number(e.c);
+            if(!resumen[e.p]) resumen[e.p] = { suma: 0 };
+            resumen[e.p].suma += cant;
+            totalGeneral += cant;
+        });
+
+        const divisor = totalMuestras > 0 ? totalMuestras : 1;
+        document.querySelector('#tablaResumen tbody').innerHTML = Object.keys(resumen).map(p => 
+            `<tr><td>${p}</td><td>${resumen[p].suma}</td><td>${(resumen[p].suma / divisor).toFixed(1)}</td><td>${totalGeneral > 0 ? ((resumen[p].suma/totalGeneral)*100).toFixed(0) : 0}%</td></tr>`).join('');
+    }
+
+    function getResumenText() {
+        const info = localStorage.getItem('infoLote') || "Sin Lote";
+        let detalles = `Evaluación: ${info}%0AReporte Detallado:%0A` + evaluaciones.map(e => `M${e.m}: ${e.p} en ${e.pr} (${e.c})`).join('%0A');
+        const resumen = {};
+        let totalGeneral = 0;
+        evaluaciones.forEach(e => {
+            const cant = Number(e.c);
+            if(!resumen[e.p]) resumen[e.p] = { suma: 0 };
+            resumen[e.p].suma += cant;
+            totalGeneral += cant;
+        });
+        const divisor = totalMuestras > 0 ? totalMuestras : 1;
+        let resumenTxt = "%0A%0AResumen:%0A" + Object.keys(resumen).map(p => `${p}: Total ${resumen[p].suma}, Prom ${(resumen[p].suma / divisor).toFixed(1)}, ${totalGeneral > 0 ? ((resumen[p].suma/totalGeneral)*100).toFixed(0) : 0}%`).join('%0A');
+        return { detalles, resumenTxt };
+    }
+
+    function enviarWhatsAppCompleto() {
+        const { detalles, resumenTxt } = getResumenText();
+        window.open(`https://wa.me/?text=${detalles}${resumenTxt}`, '_blank');
+    }
+
+    function enviarWhatsAppResumen() {
+        const { resumenTxt } = getResumenText();
+        const info = localStorage.getItem('infoLote') || "Sin Lote";
+        window.open(`https://wa.me/?text=Evaluación: ${info}${resumenTxt}`, '_blank');
+    }
+
+    function reiniciarTodo() {
+        const clave = prompt("Introduce la clave para reiniciar:");
+        if (clave === "2512") { localStorage.clear(); location.reload(); } else { alert("Clave incorrecta"); }
+    }
+    
+    renderPlagas();
+    renderDashboard();
+    actualizarSelects();
 </script>
 </body>
 </html>
